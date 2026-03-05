@@ -58,7 +58,7 @@ public static class GizmosPatch
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Matrix4x4.TRS(center, Quaternion.identity, size / 2));
+            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
 
             GL.Begin(GL.LINES);
             GL.Color(col);
@@ -93,7 +93,7 @@ public static class GizmosPatch
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Matrix4x4.TRS(center, Quaternion.identity, size / 2));
+            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
 
             GL.Begin(GL.QUADS);
             GL.Color(col);
@@ -159,12 +159,12 @@ public static class GizmosPatch
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix);
+            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(position, rotation, scale));
             GL.wireframe = wireframe;
 
             GL.Begin(GL.TRIANGLES);
             GL.Color(col);
-            
+
             int[] indices = mesh.GetIndices(submeshIndex);
             for (int i = 0; i < indices.Length; i++)
                 GL.Vertex(mesh.vertices[indices[i]]);
