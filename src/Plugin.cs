@@ -2,7 +2,9 @@
 
 using BepInEx;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -47,7 +49,7 @@ public class Plugin : BaseUnityPlugin
     }
 
     /// <summary> Every MonoBehaviour/Method that draws gizmos. </summary>
-    public static Dictionary<MonoBehaviour, MethodInfo> GizmoDrawers = [];
+    public static Dictionary<MonoBehaviour, List<MethodInfo>> GizmoDrawers = [];
 
     /// <summary> Finds all monobehaviours that draw gizmos. </summary>
     public void FindAllGizmoDrawers()
@@ -57,17 +59,19 @@ public class Plugin : BaseUnityPlugin
             if (GizmoDrawers.ContainsKey(mono))
                 continue;
 
-            MethodInfo DrawGizmos = mono.GetType().GetMethod("OnDrawGizmos", AccessTools.all);
+            Type t = mono.GetType();
+            MethodInfo DrawGizmos = t.GetMethod("OnDrawGizmos", AccessTools.all);
+            MethodInfo DrawGizmosSelected = t.GetMethod("OnDrawGizmosSelected", AccessTools.all);
 
-            if (DrawGizmos != null)
-                GizmoDrawers.Add(mono, DrawGizmos);
+            if (DrawGizmos != null || DrawGizmosSelected != null)
+                GizmoDrawers.Add(mono, [.. new MethodInfo[] { DrawGizmos, DrawGizmosSelected }.Where(m => m != null)]);
         }
     }
 
     /// <summary> Run all OnDrawGizmos. </summary>
     public void Update()
     {
-        foreach (KeyValuePair<MonoBehaviour, MethodInfo> drawer in GizmoDrawers)
-            drawer.Value.Invoke(drawer.Key, null);
+        foreach (KeyValuePair<MonoBehaviour, List<MethodInfo>> drawer in GizmoDrawers)
+            drawer.Value.ForEach(meth => meth.Invoke(drawer.Key, null));
     }
 }
