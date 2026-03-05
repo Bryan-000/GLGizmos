@@ -141,10 +141,13 @@ public static class GizmosPatch
 
     #endregion
     #region DrawMesh
-    
+
     [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
     public static void DawgGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale)
     {
+        if (!mesh.canAccess || !mesh.isReadable)
+            return;
+
         Color col = color;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
@@ -156,7 +159,7 @@ public static class GizmosPatch
             
             int[] indices = mesh.GetIndices(submeshIndex);
             for (int i = 0; i < indices.Length; i++)
-                GL.Vertex(mesh.vertices[i]);
+                GL.Vertex(mesh.vertices[indices[i]]);
 
             GL.End();
             GL.PopMatrix();
