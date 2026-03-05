@@ -46,7 +46,6 @@ public static class GizmosPatch
     public static void DrawGizmoCube(Vector3 center, Vector3 size, bool wireframe)
     {
         Color col = color;
-        col.a = 0.5f;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
