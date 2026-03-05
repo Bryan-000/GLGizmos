@@ -7,30 +7,48 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary> Patches <see cref="Gizmos"/> so it actually works ingame :3 </summary>
-[HarmonyPatch]
+[HarmonyPatch(typeof(Gizmos))]
 public static class GizmosPatch
-{ 
+{
     /// <summary> Our own color field since <see cref="Gizmos.color"/> only returns white. </summary>
-    public static Color color;
+    public static Color? color;
+
+    /// <summary> Our own matrix field since <see cref="matrix"/> only returns default. </summary>
+    public static Matrix4x4? matrix;
 
     /// <summary> Intercept <see cref="Gizmos.color"/>'s set method to also set our own <see cref="color"/> field. </summary>
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "set_color")]
+    [HarmonyPrefix] [HarmonyPatch("color", MethodType.Setter)]
     public static void InterceptColorSetter(Color value) =>
         color = value;
 
+    /// <summary> Intercept <see cref="Gizmos.matrix"/>'s set method to also set our own <see cref="color"/> field. </summary>
+    [HarmonyPrefix] [HarmonyPatch("matrix", MethodType.Setter)]
+    public static void InterceptMatrixSetter(Matrix4x4 value) =>
+        matrix = value;
+
+    /// <summary> Intercept <see cref="Gizmos.color"/>'s so it gets the true value. </summary>
+    [HarmonyPostfix] [HarmonyPatch("color", MethodType.Getter)]
+    public static void InterceptColorGetter(ref Color __result) =>
+        __result = color ?? __result;
+
+    /// <summary> Intercept <see cref="Gizmos.matrix"/>'s so it gets the true value. </summary>
+    [HarmonyPostfix] [HarmonyPatch("matrix", MethodType.Getter)]
+    public static void InterceptMatrixGetter(ref Matrix4x4 __result) =>
+        __result = matrix ?? __result;
+
     #region DrawLines
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLine")]
+    [HarmonyPrefix] [HarmonyPatch("DrawLine")]
     public static void DrawGizmoLine(Vector3 from, Vector3 to) =>
-        DrawGizmoLines(color, GL.LINES, [from, to]);
+        DrawGizmoLines(Gizmos.color, GL.LINES, [from, to]);
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
+    [HarmonyPrefix] [HarmonyPatch("DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
     public static void DrawGizmoLineList(ReadOnlySpan<Vector3> points) =>
-        DrawGizmoLines(color, GL.LINES, [.. points]);
+        DrawGizmoLines(Gizmos.color, GL.LINES, [.. points]);
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
+    [HarmonyPrefix] [HarmonyPatch("DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
     public static void DrawGizmoLineStrip(ReadOnlySpan<Vector3> points, bool looped) =>
-        DrawGizmoLines(color, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
+        DrawGizmoLines(Gizmos.color, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
 
     public static void DrawGizmoLines(Color col, int mode, List<Vector3> points) =>
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
@@ -51,10 +69,10 @@ public static class GizmosPatch
     #endregion
     #region DrawCubes
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawWireCube")]
+    [HarmonyPrefix] [HarmonyPatch("DrawWireCube")]
     public static void DrawGizmoWireCube(Vector3 center, Vector3 size)
     {
-        Color col = color;
+        Color col = Gizmos.color;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
@@ -86,10 +104,10 @@ public static class GizmosPatch
         });
     }
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawCube")]
+    [HarmonyPrefix] [HarmonyPatch("DrawCube")]
     public static void DrawGizmoCube(Vector3 center, Vector3 size)
     {
-        Color col = color;
+        Color col = Gizmos.color;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
@@ -142,11 +160,11 @@ public static class GizmosPatch
     #endregion
     #region DrawMesh
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
+    [HarmonyPrefix] [HarmonyPatch("DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
     public static void DrawGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
         DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, false);
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawWireMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
+    [HarmonyPrefix] [HarmonyPatch("DrawWireMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
     public static void DrawGizmoWireMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
         DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, true);
 
@@ -155,7 +173,7 @@ public static class GizmosPatch
         if (!mesh.canAccess || !mesh.isReadable)
             return;
 
-        Color col = color;
+        Color col = Gizmos.color;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
@@ -194,9 +212,49 @@ public static class GizmosPatch
         set; 
     }
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawSphere")]
+    /// <summary> <see cref="Mathf.Deg2Rad"/> * 16. </summary>
+    public const float Deg2RadX16 = Mathf.Deg2Rad * 16;
+
+    [HarmonyPrefix] [HarmonyPatch("DrawSphere")]
     public static void DrawGizmoSphere(Vector3 center, float radius) =>
         DawgGizmoMesh(SphereMesh, 0, center, Quaternion.identity, Vector3.one*radius, false);
+
+    [HarmonyPrefix] [HarmonyPatch("DrawWireSphere")]
+    public static void DrawGizmowireSphere(Vector3 center, float radius)
+    {
+        Color col = Gizmos.color;
+        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
+        {
+            GL.PushMatrix();
+            GL.MultMatrix(Gizmos.matrix * Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
+
+            // draw y
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, 0f, Mathf.Sin(i * Deg2RadX16) * 10f);
+            GL.Vertex3(10f, 0f, 0f);
+            GL.End();
+
+            // draw x
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(0f, Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f);
+            GL.Vertex3(0f, 10f, 0f);
+            GL.End();
+
+            // draw z
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f, 0f);
+            GL.Vertex3(10f, 0f, 0f);
+            GL.End();
+
+            GL.PopMatrix();
+        });
+    }
 
     #endregion
 }
