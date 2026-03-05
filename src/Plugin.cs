@@ -37,20 +37,6 @@ public class Plugin : BaseUnityPlugin
             GL.End();
         });
 
-        GizmoDrawer.RenderQueue.Add(delegate ()
-        {
-            GizmoDrawer.LineMat.SetPass(0);
-            GL.Begin(GL.QUADS);
-
-            GL.Color(new(0f, 1f, 0.75f));
-            GL.Vertex3(5f, 5f, 0f);
-            GL.Vertex3(-5f, 5f, 0f);
-            GL.Vertex3(-5f, -5f, 0f);
-            GL.Vertex3(5f, -5f, 0f);
-
-            GL.End();
-        });
-
         InvokeRepeating("FindAllGizmoDrawers", 0f, 2f);
 
         SceneManager.sceneLoaded += (_, _) =>
