@@ -176,4 +176,27 @@ public static class GizmosPatch
     }
 
     #endregion
+    #region DrawSphere
+
+    public static Mesh SphereMesh 
+    {
+        get
+        {
+            if (field)
+                return field;
+
+            GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            field = temp.GetComponent<MeshFilter>().sharedMesh;
+            UnityEngine.Object.Destroy(temp);
+
+            return field;
+        }
+        set; 
+    }
+
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawSphere")]
+    public static void DrawGizmoSphere(Vector3 center, float radius) =>
+        DawgGizmoMesh(SphereMesh, 0, center, Quaternion.identity, Vector3.one*radius, false);
+
+    #endregion
 }
