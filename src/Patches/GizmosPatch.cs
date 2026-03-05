@@ -143,7 +143,14 @@ public static class GizmosPatch
     #region DrawMesh
 
     [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
-    public static void DawgGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale)
+    public static void DrawGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
+        DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, false);
+
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawWireMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
+    public static void DrawGizmoWireMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
+        DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, true);
+
+    public static void DawgGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale, bool wireframe)
     {
         if (!mesh.canAccess || !mesh.isReadable)
             return;
@@ -153,6 +160,7 @@ public static class GizmosPatch
         {
             GL.PushMatrix();
             GL.MultMatrix(Gizmos.matrix);
+            GL.wireframe = wireframe;
 
             GL.Begin(GL.TRIANGLES);
             GL.Color(col);
@@ -163,6 +171,7 @@ public static class GizmosPatch
 
             GL.End();
             GL.PopMatrix();
+            GL.wireframe = false;
         });
     }
 
