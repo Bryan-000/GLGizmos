@@ -20,7 +20,6 @@ public class Plugin : BaseUnityPlugin
         // test drawer
         GizmoDrawer.RenderQueue.Add(delegate ()
         {
-            GizmoDrawer.LineMat.SetPass(0);
             GL.Begin(GL.LINES);
 
             GL.Color(new(0f, 1f, 0.75f));

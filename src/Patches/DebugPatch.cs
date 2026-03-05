@@ -18,7 +18,7 @@ public static class DebugPatch
     {
         Delegate render = delegate ()
         {
-            (depth ? GizmoDrawer.LineMat : GizmoDrawer.LineMatNoDepth).SetPass(0);
+            (depth ? GizmoMat : GizmoMatNoDepth).SetPass(0);
             GL.Begin(GL.LINES);
 
             GL.Color(color);
@@ -26,6 +26,7 @@ public static class DebugPatch
             GL.Vertex(end);
 
             GL.End();
+            GizmoMat.SetPass(0);
         };
 
         GizmoDrawer.RenderQueue.Add(render);

@@ -10,43 +10,10 @@ public class GizmoDrawer : MonoSingleton<GizmoDrawer>
 
     public static Queue<Delegate> NextFrameRenderQueue = [];
 
-    public static Material LineMat =>
-        Instance.internal_LineMat ??= new(DefaultReferenceManager.Instance.masterShader);
-
-    internal Material internal_LineMat = new(DefaultReferenceManager.Instance.masterShader);
-
-    public static Material LineMatNoDepth =>
-        Instance.internal_LineMatNoDepth ??= CreateNoDepth();
-
-    internal Material internal_LineMatNoDepth = CreateNoDepth();
-
-    public static Material CreateNoDepth()
-    {
-        // Unity has a built-in shader that is useful for drawing
-        // simple colored things.
-        Shader shader = Shader.Find("Hidden/Internal-Colored");
-        Material mat = new(shader) {
-            hideFlags = HideFlags.HideAndDontSave
-        };
-
-        // Turn on alpha blending
-        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-
-        // Turn backface culling off
-        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
-
-        // Turn off depth writes
-        mat.SetInt("_ZWrite", 0);
-
-        // Always pass depth test (ignore depth)
-        mat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
-
-        return mat;
-    }
-
+    /// <summary> Render everything in the render queue on this camera. </summary>
     public void OnPostRender()
     {
+        GizmoMat.SetPass(0);
         foreach (Delegate render in RenderQueue)
         {
             try
