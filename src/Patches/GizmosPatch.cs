@@ -24,11 +24,11 @@ public static class GizmosPatch
     public static void DrawGizmoLine(Vector3 from, Vector3 to) =>
         DrawGizmoLines(color, GL.LINES, [from, to]);
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineList")]
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
     public static void DrawGizmoLineList(ReadOnlySpan<Vector3> points) =>
         DrawGizmoLines(color, GL.LINES, [.. points]);
 
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineStrip")]
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
     public static void DrawGizmoLineStrip(ReadOnlySpan<Vector3> points, bool looped) =>
         DrawGizmoLines(color, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
 
