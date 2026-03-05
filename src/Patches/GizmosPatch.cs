@@ -40,21 +40,21 @@ public static class GizmosPatch
 
     [HarmonyPrefix] [HarmonyPatch("DrawLine")]
     public static void DrawGizmoLine(Vector3 from, Vector3 to) =>
-        DrawGizmoLines(Gizmos.color, GL.LINES, [from, to]);
+        DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [from, to]);
 
     [HarmonyPrefix] [HarmonyPatch("DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
     public static void DrawGizmoLineList(ReadOnlySpan<Vector3> points) =>
-        DrawGizmoLines(Gizmos.color, GL.LINES, [.. points]);
+        DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [.. points]);
 
     [HarmonyPrefix] [HarmonyPatch("DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
     public static void DrawGizmoLineStrip(ReadOnlySpan<Vector3> points, bool looped) =>
-        DrawGizmoLines(Gizmos.color, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
+        DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
 
-    public static void DrawGizmoLines(Color col, int mode, List<Vector3> points) =>
+    public static void DrawGizmoLines(Color col, Matrix4x4 matrix4X4, int mode, List<Vector3> points) =>
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix);
+            GL.MultMatrix(matrix4X4);
 
             GL.Begin(mode);
             GL.Color(col);
@@ -73,10 +73,11 @@ public static class GizmosPatch
     public static void DrawGizmoWireCube(Vector3 center, Vector3 size)
     {
         Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
+            GL.MultMatrix(matrix4X4*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
 
             GL.Begin(GL.LINES);
             GL.Color(col);
@@ -108,10 +109,11 @@ public static class GizmosPatch
     public static void DrawGizmoCube(Vector3 center, Vector3 size)
     {
         Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
+            GL.MultMatrix(matrix4X4*Matrix4x4.TRS(center, Quaternion.identity, size / 2));
 
             GL.Begin(GL.QUADS);
             GL.Color(col);
@@ -174,10 +176,11 @@ public static class GizmosPatch
             return;
 
         Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix*Matrix4x4.TRS(position, rotation, scale));
+            GL.MultMatrix(matrix4X4*Matrix4x4.TRS(position, rotation, scale));
             GL.wireframe = wireframe;
 
             GL.Begin(GL.TRIANGLES);
@@ -223,10 +226,11 @@ public static class GizmosPatch
     public static void DrawGizmowireSphere(Vector3 center, float radius)
     {
         Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
-            GL.MultMatrix(Gizmos.matrix * Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
+            GL.MultMatrix(matrix4X4*Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
 
             // draw y
             GL.Begin(GL.LINE_STRIP);
