@@ -36,21 +36,48 @@ public static class GizmosPatch
     }
 
     [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawWireCube")]
-    public static void DrawGizmoWireCube(Vector3 center, Vector3 size) =>
-        DrawGizmoCube(center, size, true);
-
-    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawCube")]
-    public static void DrawGizmoCube(Vector3 center, Vector3 size) =>
-        DrawGizmoCube(center, size, false);
-
-    public static void DrawGizmoCube(Vector3 center, Vector3 size, bool wireframe)
+    public static void DrawGizmoWireCube(Vector3 center, Vector3 size)
     {
         Color col = color;
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
             GL.MultMatrix(Matrix4x4.TRS(center, Quaternion.identity, size / 2));
-            GL.wireframe = wireframe;
+
+            GL.Begin(GL.LINES);
+            GL.Color(col);
+
+            // front
+            GL.Vertex3(-1f, -1f, 1f); GL.Vertex3(1f, -1f, 1f);
+            GL.Vertex3(1f, -1f, 1f); GL.Vertex3(1f, 1f, 1f);
+            GL.Vertex3(1f, 1f, 1f); GL.Vertex3(-1f, 1f, 1f);
+            GL.Vertex3(-1f, 1f, 1f); GL.Vertex3(-1f, -1f, 1f);
+
+            // back
+            GL.Vertex3(-1f, -1f, -1f); GL.Vertex3(1f, -1f, -1f);
+            GL.Vertex3(1f, -1f, -1f); GL.Vertex3(1f, 1f, -1f);
+            GL.Vertex3(1f, 1f, -1f); GL.Vertex3(-1f, 1f, -1f);
+            GL.Vertex3(-1f, 1f, -1f); GL.Vertex3(-1f, -1f, -1f);
+
+            // connecting edges from front->back
+            GL.Vertex3(-1f, -1f, -1f); GL.Vertex3(-1f, -1f, 1f);
+            GL.Vertex3(1f, -1f, -1f); GL.Vertex3(1f, -1f, 1f);
+            GL.Vertex3(1f, 1f, -1f); GL.Vertex3(1f, 1f, 1f);
+            GL.Vertex3(-1f, 1f, -1f); GL.Vertex3(-1f, 1f, 1f);
+
+            GL.End();
+            GL.PopMatrix();
+        });
+    }
+
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawCube")]
+    public static void DrawGizmoCube(Vector3 center, Vector3 size)
+    {
+        Color col = color;
+        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
+        {
+            GL.PushMatrix();
+            GL.MultMatrix(Matrix4x4.TRS(center, Quaternion.identity, size / 2));
 
             GL.Begin(GL.QUADS);
             GL.Color(col);
@@ -93,7 +120,6 @@ public static class GizmosPatch
 
             GL.End();
             GL.PopMatrix();
-            GL.wireframe = false;
         });
     }
 }

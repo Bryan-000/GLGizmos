@@ -45,11 +45,11 @@ public static class Materials
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
 
-        // Turn backface culling off
-        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
-
         // Turn off depth writes
         mat.SetInt("_ZWrite", 0);
+
+        // Make backface culling work the way we want :3
+        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Back);
 
         return mat;
     }
