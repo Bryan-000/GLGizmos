@@ -1,6 +1,9 @@
 ﻿namespace GLGizmos.Patches;
 
 using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary> Patches <see cref="Gizmos"/> so it actually works ingame :3 </summary>
@@ -15,25 +18,38 @@ public static class GizmosPatch
     public static void InterceptColorSetter(Color value) =>
         color = value;
 
+    #region DrawLines
+
     [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLine")]
-    public static void DrawGizmoLine(Vector3 from, Vector3 to)
-    {
-        Color col = color; // save the color for later
+    public static void DrawGizmoLine(Vector3 from, Vector3 to) =>
+        DrawGizmoLines(color, GL.LINES, [from, to]);
+
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineList")]
+    public static void DrawGizmoLineList(ReadOnlySpan<Vector3> points) =>
+        DrawGizmoLines(color, GL.LINES, [.. points]);
+
+    [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawLineStrip")]
+    public static void DrawGizmoLineStrip(ReadOnlySpan<Vector3> points, bool looped) =>
+        DrawGizmoLines(color, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
+
+    public static void DrawGizmoLines(Color col, int mode, List<Vector3> points) =>
         GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
         {
             GL.PushMatrix();
             GL.MultMatrix(Gizmos.matrix);
 
-            GL.Begin(GL.LINES);
+            GL.Begin(mode);
             GL.Color(col);
 
-            GL.Vertex(from);
-            GL.Vertex(to);
+            // draw all points
+            points.ForEach(GL.Vertex);
 
             GL.End();
             GL.PopMatrix();
         });
-    }
+
+    #endregion
+    #region DrawCubes
 
     [HarmonyPrefix] [HarmonyPatch(typeof(Gizmos), "DrawWireCube")]
     public static void DrawGizmoWireCube(Vector3 center, Vector3 size)
@@ -47,23 +63,23 @@ public static class GizmosPatch
             GL.Begin(GL.LINES);
             GL.Color(col);
 
-            // front
+            // front face
             GL.Vertex3(-1f, -1f, 1f); GL.Vertex3(1f, -1f, 1f);
-            GL.Vertex3(1f, -1f, 1f); GL.Vertex3(1f, 1f, 1f);
-            GL.Vertex3(1f, 1f, 1f); GL.Vertex3(-1f, 1f, 1f);
-            GL.Vertex3(-1f, 1f, 1f); GL.Vertex3(-1f, -1f, 1f);
+            GL.Vertex3(1f, -1f, 1f);  GL.Vertex3(1f, 1f, 1f);
+            GL.Vertex3(1f, 1f, 1f);   GL.Vertex3(-1f, 1f, 1f);
+            GL.Vertex3(-1f, 1f, 1f);  GL.Vertex3(-1f, -1f, 1f);
 
-            // back
+            // back face
             GL.Vertex3(-1f, -1f, -1f); GL.Vertex3(1f, -1f, -1f);
-            GL.Vertex3(1f, -1f, -1f); GL.Vertex3(1f, 1f, -1f);
-            GL.Vertex3(1f, 1f, -1f); GL.Vertex3(-1f, 1f, -1f);
-            GL.Vertex3(-1f, 1f, -1f); GL.Vertex3(-1f, -1f, -1f);
+            GL.Vertex3(1f, -1f, -1f);  GL.Vertex3(1f, 1f, -1f);
+            GL.Vertex3(1f, 1f, -1f);   GL.Vertex3(-1f, 1f, -1f);
+            GL.Vertex3(-1f, 1f, -1f);  GL.Vertex3(-1f, -1f, -1f);
 
             // connecting edges from front->back
             GL.Vertex3(-1f, -1f, -1f); GL.Vertex3(-1f, -1f, 1f);
-            GL.Vertex3(1f, -1f, -1f); GL.Vertex3(1f, -1f, 1f);
-            GL.Vertex3(1f, 1f, -1f); GL.Vertex3(1f, 1f, 1f);
-            GL.Vertex3(-1f, 1f, -1f); GL.Vertex3(-1f, 1f, 1f);
+            GL.Vertex3(1f, -1f, -1f);  GL.Vertex3(1f, -1f, 1f);
+            GL.Vertex3(1f, 1f, -1f);   GL.Vertex3(1f, 1f, 1f);
+            GL.Vertex3(-1f, 1f, -1f);  GL.Vertex3(-1f, 1f, 1f);
 
             GL.End();
             GL.PopMatrix();
@@ -122,4 +138,6 @@ public static class GizmosPatch
             GL.PopMatrix();
         });
     }
+
+    #endregion
 }
