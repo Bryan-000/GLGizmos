@@ -160,6 +160,126 @@ public static class GizmosPatch
     }
 
     #endregion
+    #region DrawSphere
+
+    public static Mesh SphereMesh
+    {
+        get
+        {
+            if (field)
+                return field;
+
+            GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            field = temp.GetComponent<MeshFilter>().sharedMesh;
+            UnityEngine.Object.Destroy(temp);
+
+            return field;
+        }
+        set;
+    }
+
+    /// <summary> <see cref="Mathf.Deg2Rad"/> * 16. </summary>
+    public const float Deg2RadX16 = Mathf.Deg2Rad * 16;
+
+    [HarmonyPrefix]
+    [HarmonyPatch("DrawSphere")]
+    public static void DrawGizmoSphere(Vector3 center, float radius) =>
+        DawgGizmoMesh(SphereMesh, 0, center, Quaternion.identity, Vector3.one * radius, false);
+
+    [HarmonyPrefix]
+    [HarmonyPatch("DrawWireSphere")]
+    public static void DrawGizmowireSphere(Vector3 center, float radius)
+    {
+        Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
+        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
+        {
+            GL.PushMatrix();
+            GL.MultMatrix(matrix4X4 * Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
+
+            // draw y
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, 0f, Mathf.Sin(i * Deg2RadX16) * 10f);
+            GL.Vertex3(10f, 0f, 0f);
+            GL.End();
+
+            // draw x
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(0f, Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f);
+            GL.Vertex3(0f, 10f, 0f);
+            GL.End();
+
+            // draw z
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(new(0f, 1f, 0.75f));
+            for (int i = 0; i < 23; i++)
+                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f, 0f);
+            GL.Vertex3(10f, 0f, 0f);
+            GL.End();
+
+            GL.PopMatrix();
+        });
+    }
+
+    #endregion
+    #region DrawFrustum
+
+    [HarmonyPrefix] [HarmonyPatch("DrawFrustum")]
+    public static void DrawGizmosFrustum(Vector3 center, float fov, float maxRange, float minRange, float aspect)
+    {
+        Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
+        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
+        {
+            GL.PushMatrix();
+            GL.MultMatrix(matrix4X4 * Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
+
+            // draw main frustum
+            GL.Begin(GL.LINE_STRIP);
+            GL.Color(col);
+
+            float height = Mathf.Tan(fov/2f * Mathf.Deg2Rad);
+            float max = height * maxRange;
+            float min = height * minRange;
+
+            GL.Vertex3(-max * aspect, max,  maxRange);
+            GL.Vertex3(max  * aspect, max,  maxRange);
+            GL.Vertex3(max  * aspect, -max, maxRange);
+            GL.Vertex3(-max * aspect, -max, maxRange);
+            GL.Vertex3(-max * aspect, max,  maxRange);
+
+            GL.Vertex3(-min * aspect, min,  minRange);
+            GL.Vertex3(min  * aspect, min,  minRange);
+            GL.Vertex3(min  * aspect, -min, minRange);
+            GL.Vertex3(-min * aspect, -min, minRange);
+            GL.Vertex3(-min * aspect, min,  minRange);
+
+            GL.End();
+
+            // draw connecting lines :3333 miaow meow mrrrp rawr
+            GL.Begin(GL.LINES);
+            GL.Color(col);
+
+            GL.Vertex3(max * aspect, max, maxRange);
+            GL.Vertex3(min * aspect, min, minRange);
+
+            GL.Vertex3(max * aspect, -max, maxRange);
+            GL.Vertex3(min * aspect, -min, minRange);
+
+            GL.Vertex3(-max * aspect, -max, maxRange);
+            GL.Vertex3(-min * aspect, -min, minRange);
+
+            GL.End();
+
+            GL.PopMatrix();
+        });
+    }
+
+    #endregion
     #region DrawMesh
 
     [HarmonyPrefix] [HarmonyPatch("DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
@@ -193,70 +313,6 @@ public static class GizmosPatch
             GL.End();
             GL.PopMatrix();
             GL.wireframe = false;
-        });
-    }
-
-    #endregion
-    #region DrawSphere
-
-    public static Mesh SphereMesh 
-    {
-        get
-        {
-            if (field)
-                return field;
-
-            GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            field = temp.GetComponent<MeshFilter>().sharedMesh;
-            UnityEngine.Object.Destroy(temp);
-
-            return field;
-        }
-        set; 
-    }
-
-    /// <summary> <see cref="Mathf.Deg2Rad"/> * 16. </summary>
-    public const float Deg2RadX16 = Mathf.Deg2Rad * 16;
-
-    [HarmonyPrefix] [HarmonyPatch("DrawSphere")]
-    public static void DrawGizmoSphere(Vector3 center, float radius) =>
-        DawgGizmoMesh(SphereMesh, 0, center, Quaternion.identity, Vector3.one*radius, false);
-
-    [HarmonyPrefix] [HarmonyPatch("DrawWireSphere")]
-    public static void DrawGizmowireSphere(Vector3 center, float radius)
-    {
-        Color col = Gizmos.color;
-        Matrix4x4 matrix4X4 = Gizmos.matrix;
-        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
-        {
-            GL.PushMatrix();
-            GL.MultMatrix(matrix4X4*Matrix4x4.TRS(center, Quaternion.identity, Vector3.one));
-
-            // draw y
-            GL.Begin(GL.LINE_STRIP);
-            GL.Color(new(0f, 1f, 0.75f));
-            for (int i = 0; i < 23; i++)
-                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, 0f, Mathf.Sin(i * Deg2RadX16) * 10f);
-            GL.Vertex3(10f, 0f, 0f);
-            GL.End();
-
-            // draw x
-            GL.Begin(GL.LINE_STRIP);
-            GL.Color(new(0f, 1f, 0.75f));
-            for (int i = 0; i < 23; i++)
-                GL.Vertex3(0f, Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f);
-            GL.Vertex3(0f, 10f, 0f);
-            GL.End();
-
-            // draw z
-            GL.Begin(GL.LINE_STRIP);
-            GL.Color(new(0f, 1f, 0.75f));
-            for (int i = 0; i < 23; i++)
-                GL.Vertex3(Mathf.Cos(i * Deg2RadX16) * 10f, Mathf.Sin(i * Deg2RadX16) * 10f, 0f);
-            GL.Vertex3(10f, 0f, 0f);
-            GL.End();
-
-            GL.PopMatrix();
         });
     }
 
