@@ -320,7 +320,7 @@ public static class GizmosPatch
     #region DrawIcon
 
     [HarmonyPrefix] [HarmonyPatch("DrawIcon", [typeof(Vector3), typeof(string), typeof(bool), typeof(Color)])]
-    public static void DrawGizmoIconDrawIcon(Vector3 center, string name, bool allowScaling, Color tint)
+    public static void DrawGizmoIcon(Vector3 center, string name, bool allowScaling, Color tint)
     {
         Color col = Gizmos.color;
         Matrix4x4 matrix4X4 = Gizmos.matrix;
