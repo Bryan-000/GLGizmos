@@ -72,6 +72,12 @@ public class Plugin : BaseUnityPlugin
     public void Update()
     {
         foreach (KeyValuePair<MonoBehaviour, List<MethodInfo>> drawer in GizmoDrawers)
-            drawer.Value.ForEach(meth => meth.Invoke(drawer.Key, null));
+        {
+            try
+            { // just incase its null or smt goes wrong
+                drawer.Value.ForEach(meth => meth.Invoke(drawer.Key, null));
+            }
+            catch { }
+        }
     }
 }
