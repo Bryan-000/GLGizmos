@@ -7,17 +7,41 @@ using UnityEngine;
 /// <summary> Materials class for handling/creating materials for gizmo's. </summary>
 public static class Materials
 {
-    /// <summary> Generic unlit material for gizmo's. </summary>
-    public static Material GizmoMat =>
-        internal_GizmoMat ??= CreateGizmo();
+    /// <summary> Generic unlit colored material for gizmo's. </summary>
+    public static Material GizmoMat
+    { 
+        get 
+        {
+            if (!field)
+                field = CreateGizmo();
+
+            return field;
+        } 
+    }
 
     /// <summary> Same as <see cref="GizmoMat"/> but without depth and renders ontop of everything else. </summary>
-    public static Material GizmoMatNoDepth =>
-        internal_GizmoMatNoDepth ??= CreateGizmoNoDepth();
+    public static Material GizmoMatNoDepth
+    { 
+        get 
+        {
+            if (!field)
+                field = CreateGizmoNoDepth();
 
-    /// <summary> meowmeowmeow </summary>
-    internal static Material internal_GizmoMat = CreateGizmo(),
-        internal_GizmoMatNoDepth = CreateGizmoNoDepth();
+            return field;
+        } 
+    }
+
+    /// <summary> Generic unlit textured material for gizmo's. </summary>
+    public static Material GizmoTexMat
+    {
+        get
+        {
+            if (!field)
+                field = CreateTexGizmo();
+
+            return field;
+        }
+    }
 
     /// <summary> Creates a new material designed for gizmo's, without depth. </summary>
     public static Material CreateGizmoNoDepth()
@@ -50,6 +74,21 @@ public static class Materials
 
         // Make backface culling work the way we want :3
         mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Back);
+
+        return mat;
+    }
+
+
+    /// <summary> Creates a new textured material designed for gizmo's. </summary>
+    public static Material CreateTexGizmo()
+    {
+        Shader shader = Shader.Find("Unlit/Texture");
+        Material mat = new(shader)
+        {
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        
+        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
 
         return mat;
     }
