@@ -13,11 +13,13 @@ using UnityEngine.SceneManagement;
 [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
 public class Plugin : BaseUnityPlugin
 {
+    /// <summary> Static plugin instance property. </summary>
+    public static Plugin Instance { get; internal set; }
+
     /// <summary> Load the mod. </summary>
     public void Awake()
     {
-        // patch meow
-        new Harmony(PluginInfo.GUID).PatchAll();
+        GizmoDrawer.Load();
 
         // test drawer
         GizmoDrawer.RenderQueue.Add(delegate ()
@@ -39,13 +41,16 @@ public class Plugin : BaseUnityPlugin
             GL.End();
         });
 
+        // find all gizmo drawers every 2 seconds/on scene load :3
         InvokeRepeating("FindAllGizmoDrawers", 0f, 2f);
-
         SceneManager.sceneLoaded += (_, _) =>
         {
             GizmoDrawers.Clear();
             FindAllGizmoDrawers();
         };
+
+        // patch meow
+        new Harmony(PluginInfo.GUID).PatchAll();
     }
 
     /// <summary> Every MonoBehaviour/Method that draws gizmos. </summary>

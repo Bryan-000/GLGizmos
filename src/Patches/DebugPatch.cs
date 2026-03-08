@@ -11,7 +11,7 @@ public static class DebugPatch
 {
     [HarmonyPrefix] [HarmonyPatch(typeof(Debug), "DrawLine", [typeof(Vector3), typeof(Vector3), typeof(Color), typeof(float), typeof(bool)])]
     public static void DrawDebugLine(Vector3 start, Vector3 end, Color color, float duration, bool depthTest) =>
-        GizmoDrawer.Instance.StartCoroutine(DrawDebugLineAsync(start, end, color, duration, depthTest));
+        Plugin.Instance.StartCoroutine(DrawDebugLineAsync(start, end, color, duration, depthTest));
 
     /// <summary> Draws a line from <paramref name="start"/> to <paramref name="end"/> with the specified color, duration, and whether it should have depth. </summary>
     public static IEnumerator DrawDebugLineAsync(Vector3 start, Vector3 end, Color color, float duration, bool depth)

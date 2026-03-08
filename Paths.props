@@ -1,13 +1,9 @@
 <Project>
 	<PropertyGroup>
-		<!-- Set this to where ever your ULTRAKILL folder is. -->
-		<ULTRAKILLPath>C:\Program Files (x86)\Steam\steamapps\common\ULTRAKILL</ULTRAKILLPath>
+		<!-- Set this to where ever your game folder is. -->
+		<GamePath>C:\Program Files (x86)\Steam\steamapps\common\ULTRAKILL</GamePath>
 
-		<!-- You shouldn't need to touch these. If you do, ask me about it on discord @fredayddd321ewq -->
-		<ManagedPath>$(ULTRAKILLPath)\ULTRAKILL_Data\Managed</ManagedPath>
-		<PluginPath>$(ULTRAKILLPath)\BepInEx\plugins</PluginPath>
-
-		<!-- This is the path where the DLL is copied too, if you have it in a different folder or something then add the name of that folder onto here. -->
-		<CopyPath>$(PluginPath)\GLGizmos</CopyPath>
+		<!-- This is the path where the DLL is copied too, if you have it in a different folder or something then set the path of that folder onto here. -->
+		<CopyPath>$(GamePath)\BepInEx\plugins\GLGizmos</CopyPath>
 	</PropertyGroup>
 </Project>

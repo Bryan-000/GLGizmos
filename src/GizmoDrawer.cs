@@ -4,15 +4,26 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GizmoDrawer : MonoSingleton<GizmoDrawer>
+/// <summary> Static class for drawing all the gizmos :3 </summary>
+public static class GizmoDrawer
 {
+    /// <summary> Stuff to be drawn every OnPostRender. </summary>
     public static List<Delegate> RenderQueue = [];
 
+    /// <summary> Stuff to be drawn in the next OnPostRender frame. </summary>
     public static Queue<Delegate> NextFrameRenderQueue = [];
 
+    /// <summary> Loads the gizmodrawer :3 </summary>
+    public static void Load() =>
+        Camera.onPostRender += OnPostRender;
+
     /// <summary> Render everything in the render queue on this camera. </summary>
-    public void OnPostRender()
+    public static void OnPostRender(Camera cam)
     {
+        // only render on the main camera as some games have multiple cameras
+        if (cam != Camera.main)
+            return;
+
         GizmoMat.SetPass(0);
         foreach (Delegate render in RenderQueue)
         {
@@ -37,10 +48,5 @@ public class GizmoDrawer : MonoSingleton<GizmoDrawer>
                 Debug.LogException(ex);
             }
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.DrawIcon(Vector3.zero, "UISprite");
     }
 }

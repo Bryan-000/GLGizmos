@@ -22,27 +22,11 @@
 		<!-- Nuget Packages -->
 		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
 		<PackageReference Include="UnityEngine.Modules" Version="2022.3.29" IncludeAssets="compile" />
-
-		<!-- Assemblies via Managed -->
-		<Reference Include="Assembly-CSharp">
-			<HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="PLog">
-			<HintPath>$(ManagedPath)\plog.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<Target Name="PreBuild" BeforeTargets="Build">
-		<!-- Log an error if the ULTRAKILLPath isn't set as it's nessecary for building the mod. -->
-		<Error Condition="!Exists($(ULTRAKILLPath))" Text="ULTRAKILLPath not set, open the Paths.props file and set ULTRAKILLPath to where ever your ULTRAKILL install is located on your computer." />
-	</Target>
-	
-	<Target Name="PostBuild" AfterTargets="Build">
-		<!-- Log a Warning if the PluginPath doesn't exist as it's used for knowing where to copy the DLL. -->
-		<Warning Condition="!Exists($(PluginPath))" Text="PluginPath not set, open the Paths.props file and set it to where your BepInEx plugins folder is." />
-
-		<!-- Copy the DLL if the PluginPath does exist. -->
-		<Message Condition="Exists($(PluginPath))" Text="Copying DLL to: $(CopyPath)..." Importance="high" />
-		<Copy Condition="Exists($(PluginPath))" SourceFiles="$(TargetPath)" DestinationFolder="$(CopyPath)" OverwriteReadOnlyFiles="true" />
+		<!-- Log an error if the CopyPath isn't set as it's used for copying the dll over. -->
+		<Warning Condition="!Exists($(GamePath))" Text="GamePath not set, the DLL will not be automatically copied to your BepInEx folder." />
+		<Warning Condition="!Exists($(GamePath))" Text="If you want it to auto copy the DLL then open Paths.props and set GamePath and CopyPath." />
 	</Target>
 </Project>
