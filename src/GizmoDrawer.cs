@@ -20,9 +20,18 @@ public static class GizmoDrawer
     /// <summary> Render everything in the render queue on this camera. </summary>
     public static void OnPostRender(Camera cam)
     {
-        // only render on the main camera as some games have multiple cameras
-        if (cam != Camera.main)
-            return;
+        try
+        {
+            // only render on the main camera as some games have multiple cameras
+            if (cam != Camera.main)
+                return;
+        }
+        catch
+        {
+            // older versions of unity dont have Camera.main so uh TRY to use Camera.current
+            if (cam != Camera.current)
+                return;
+        }
 
         GizmoMat.SetPass(0);
         foreach (Delegate render in RenderQueue)
