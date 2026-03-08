@@ -1,8 +1,8 @@
 ﻿global using static GLGizmos.Materials;
-
 namespace GLGizmos;
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary> Materials class for handling/creating materials for gizmo's. </summary>
 public static class Materials
@@ -49,7 +49,7 @@ public static class Materials
         Material mat = CreateGizmo();
 
         // Always pass depth test (ignore depth)
-        mat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+        mat.SetInt("_ZTest", (int)CompareFunction.Always);
 
         return mat;
     }
@@ -66,14 +66,14 @@ public static class Materials
         };
 
         // Turn on alpha blending
-        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
 
         // Turn off depth writes
         mat.SetInt("_ZWrite", 0);
 
         // Make backface culling work the way we want :3
-        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Back);
+        mat.SetInt("_Cull", (int)CullMode.Back);
 
         return mat;
     }
@@ -88,7 +88,7 @@ public static class Materials
             hideFlags = HideFlags.HideAndDontSave
         };
         
-        mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+        mat.SetInt("_Cull", (int)CullMode.Off);
 
         return mat;
     }
