@@ -317,4 +317,37 @@ public static class GizmosPatch
     }
 
     #endregion
+    #region DrawIcon
+
+    [HarmonyPrefix] [HarmonyPatch("DrawIcon", [typeof(Vector3), typeof(string), typeof(bool), typeof(Color)])]
+    public static void DrawGizmoIconDrawIcon(Vector3 center, string name, bool allowScaling, Color tint)
+    {
+        Color col = Gizmos.color;
+        Matrix4x4 matrix4X4 = Gizmos.matrix;
+        Texture icon = Resources.Load<Texture>(name);
+        GizmoDrawer.NextFrameRenderQueue.Enqueue(delegate ()
+        {
+            // calculate where to look as to look at the camera :3
+            Quaternion rotation = Quaternion.LookRotation(matrix4X4.MultiplyPoint(center) - Camera.current.transform.position);
+
+            GL.PushMatrix();
+            GL.MultMatrix(matrix4X4 * Matrix4x4.TRS(center, rotation, Vector3.one));
+            GizmoTexMat.mainTexture = icon;
+            GizmoTexMat.SetPass(0);
+
+            GL.Begin(GL.QUADS);
+            GL.Color(col*tint);
+
+            GL.TexCoord2(0f, 1f); GL.Vertex3(-10f, -10f, 0f);
+            GL.TexCoord2(0f, 0f); GL.Vertex3(-10f, 10f, 0f);
+            GL.TexCoord2(1f, 0f); GL.Vertex3(10f, 10f, 0f);
+            GL.TexCoord2(1f, 1f); GL.Vertex3(10f, -10f, 0f);
+
+            GL.End();
+            GizmoMat.SetPass(0);
+            GL.PopMatrix();
+        });
+    }
+
+    #endregion
 }

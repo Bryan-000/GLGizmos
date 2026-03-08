@@ -38,4 +38,9 @@ public class GizmoDrawer : MonoSingleton<GizmoDrawer>
             }
         }
     }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.DrawIcon(Vector3.zero, "UISprite");
+    }
 }
