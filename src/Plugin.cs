@@ -19,6 +19,8 @@ public class Plugin : BaseUnityPlugin
     /// <summary> Load the mod. </summary>
     public void Awake()
     {
+        // patch meow
+        new Harmony(PluginInfo.GUID).PatchAll(GetType().Assembly);
         GizmoDrawer.Load();
 
         // test drawer
@@ -48,9 +50,6 @@ public class Plugin : BaseUnityPlugin
             GizmoDrawers.Clear();
             FindAllGizmoDrawers();
         };
-
-        // patch meow
-        new Harmony(PluginInfo.GUID).PatchAll();
     }
 
     /// <summary> Every MonoBehaviour/Method that draws gizmos. </summary>
