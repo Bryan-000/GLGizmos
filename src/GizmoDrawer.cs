@@ -22,8 +22,13 @@ public static class GizmoDrawer
     {
         try
         {
+            // if the main camera is hidden or null then use Camera.current
+            Camera main = Camera.main;
+            if (!main?.gameObject.activeInHierarchy ?? true)
+                main = Camera.current;
+
             // only render on the main camera as some games have multiple cameras
-            if (cam != Camera.main)
+            if (cam != main)
                 return;
         }
         catch
