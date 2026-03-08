@@ -29,4 +29,10 @@
 		<Warning Condition="!Exists($(GamePath))" Text="GamePath not set, the DLL will not be automatically copied to your BepInEx folder." />
 		<Warning Condition="!Exists($(GamePath))" Text="If you want it to auto copy the DLL then open Paths.props and set GamePath and CopyPath." />
 	</Target>
+	
+	<Target Name="PostBuild" AfterTargets="Build">
+		<!-- Copy the DLL if the CopyPath does exist. -->
+		<Message Condition="Exists($(CopyDir))" Text="Copying DLL to: $(CopyPath)..." Importance="high" />
+		<Copy Condition="Exists($(CopyDir))" SourceFiles="$(TargetPath)" DestinationFolder="$(CopyPath)" OverwriteReadOnlyFiles="true" />
+	</Target>
 </Project>
