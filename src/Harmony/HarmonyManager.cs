@@ -1,5 +1,6 @@
 ﻿namespace GLGizmos.Harmony;
 
+using BepInEx.Logging;
 using GLGizmos.Harmony.Attributes;
 using HarmonyLib;
 using System;
@@ -13,6 +14,9 @@ public static class HarmonyManager
 {
     /// <summary> "It's called harmony because it harms your mental health" - Doomah 2025/12/24 </summary>
     public static Harmony harm = new(PluginInfo.GUID);
+
+    /// <summary> BepInEx log source so we can log if something goes wrong. </summary>
+    public static ManualLogSource logger = Logger.CreateLogSource("GLGizmos::Patching");
 
     /// <summary> safely patches everything in the current assembly or the provided one. </summary>
     public static void SafePatchAll(Assembly asm = null)
@@ -28,7 +32,10 @@ public static class HarmonyManager
                 if (patches.Any())
                     SafePatchMethodsOfType(type, patches);
             }
-            catch { }
+            catch 
+            {
+                logger.LogWarning("Failed to patch " + type.Name);
+            }
         });
     }
 
@@ -54,7 +61,10 @@ public static class HarmonyManager
 
                 patchProcessor.Patch();
             }
-            catch { }
+            catch
+            {
+                logger.LogWarning($"Failed to patch {t.Name}:: {meth.Name}");
+            }
         });
     }
 
