@@ -1,5 +1,5 @@
 # GL-Gizmos
-Tries to use UnityEngine.GL to make Debug.DrawLine/GIzmo's work in builds of Unity games.
+Tries to use UnityEngine.GL to make Debug.DrawLine/Gizmo's work in builds of Unity games.
 
 # TODO: 
 ##### (pls help with any of these if u know how to do them)
