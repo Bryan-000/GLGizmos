@@ -23,6 +23,7 @@ public static class HarmonyManager
     {
         asm ??= new StackTrace().GetFrame(1).GetMethod().ReflectedType.Assembly;
 
+        logger.LogInfo($"Patching {asm.GetName().Name}(at: {asm.Location})...");
         AccessTools.GetTypesFromAssembly(asm).Do((type) =>
         {
             try
@@ -37,6 +38,7 @@ public static class HarmonyManager
                 logger.LogWarning("Failed to patch " + type.Name);
             }
         });
+        logger.LogInfo($"Successfully patched {asm.GetName().Name}(at: {asm.Location}).");
     }
 
     /// <summary> Safely patches all of our patches of a type. </summary>
