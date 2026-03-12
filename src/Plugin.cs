@@ -1,6 +1,7 @@
 ﻿namespace GLGizmos;
 
 using BepInEx;
+using GLGizmos.Harmony;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ public class Plugin : BaseUnityPlugin
     public void Awake()
     {
         // patch meow
-        new Harmony(PluginInfo.GUID).PatchAll(GetType().Assembly);
+        HarmonyManager.SafePatchAll(GetType().Assembly);
         GizmoDrawer.Load();
 
         // test drawer

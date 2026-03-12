@@ -1,15 +1,16 @@
-﻿namespace GLGizmos.Patches;
+﻿namespace GLGizmos.Harmony.Patches;
 
+using GLGizmos.Harmony.Attributes;
 using HarmonyLib;
 using System;
 using System.Collections;
 using UnityEngine;
 
-/// <summary> Patches <see cref="Debug"/> so <see cref="Debug.DrawLine(Vector3, Vector3, Color, float, bool)"/> and others worl. </summary>
-[HarmonyPatch]
+/// <summary> Patches <see cref="Debug"/> so <see cref="Debug.DrawLine(Vector3, Vector3, Color, float, bool)"/> and others work. </summary>
+[Patch]
 public static class DebugPatch
 {
-    [HarmonyPrefix] [HarmonyPatch(typeof(Debug), "DrawLine", [typeof(Vector3), typeof(Vector3), typeof(Color), typeof(float), typeof(bool)])]
+    [Prefix] [Patch(typeof(Debug), "DrawLine", [typeof(Vector3), typeof(Vector3), typeof(Color), typeof(float), typeof(bool)])]
     public static void DrawDebugLine(Vector3 start, Vector3 end, Color color, float duration, bool depthTest) =>
         Plugin.Instance.StartCoroutine(DrawDebugLineAsync(start, end, color, duration, depthTest));
 

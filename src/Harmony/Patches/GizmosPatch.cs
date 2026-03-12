@@ -1,5 +1,6 @@
-﻿namespace GLGizmos.Patches;
+﻿namespace GLGizmos.Harmony.Patches;
 
+using GLGizmos.Harmony.Attributes;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary> Patches <see cref="Gizmos"/> so it actually works ingame :3 </summary>
-[HarmonyPatch(typeof(Gizmos))]
+[Patch(typeof(Gizmos))]
 public static class GizmosPatch
 {
     /// <summary> Our own color field since <see cref="Gizmos.color"/> only returns white. </summary>
@@ -17,36 +18,36 @@ public static class GizmosPatch
     public static Matrix4x4? matrix;
 
     /// <summary> Intercept <see cref="Gizmos.color"/>'s set method to also set our own <see cref="color"/> field. </summary>
-    [HarmonyPrefix] [HarmonyPatch("color", MethodType.Setter)]
+    [Prefix] [Patch("color", MethodType.Setter)]
     public static void InterceptColorSetter(Color value) =>
         color = value;
 
     /// <summary> Intercept <see cref="Gizmos.matrix"/>'s set method to also set our own <see cref="color"/> field. </summary>
-    [HarmonyPrefix] [HarmonyPatch("matrix", MethodType.Setter)]
+    [Prefix] [Patch("matrix", MethodType.Setter)]
     public static void InterceptMatrixSetter(Matrix4x4 value) =>
         matrix = value;
 
     /// <summary> Intercept <see cref="Gizmos.color"/>'s so it gets the true value. </summary>
-    [HarmonyPostfix] [HarmonyPatch("color", MethodType.Getter)]
+    [Postfix] [Patch("color", MethodType.Getter)]
     public static void InterceptColorGetter(ref Color __result) =>
         __result = color ?? __result;
 
     /// <summary> Intercept <see cref="Gizmos.matrix"/>'s so it gets the true value. </summary>
-    [HarmonyPostfix] [HarmonyPatch("matrix", MethodType.Getter)]
+    [Postfix] [Patch("matrix", MethodType.Getter)]
     public static void InterceptMatrixGetter(ref Matrix4x4 __result) =>
         __result = matrix ?? __result;
 
     #region DrawLines
 
-    [HarmonyPrefix] [HarmonyPatch("DrawLine")]
+    [Prefix] [Patch("DrawLine")]
     public static void DrawGizmoLine(Vector3 from, Vector3 to) =>
         DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [from, to]);
 
-    [HarmonyPrefix] [HarmonyPatch("DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
+    [Prefix] [Patch("DrawLineList", [typeof(ReadOnlySpan<Vector3>)])]
     public static void DrawGizmoLineList(ReadOnlySpan<Vector3> points) =>
         DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [.. points]);
 
-    [HarmonyPrefix] [HarmonyPatch("DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
+    [Prefix] [Patch("DrawLineStrip", [typeof(ReadOnlySpan<Vector3>), typeof(bool)])]
     public static void DrawGizmoLineStrip(ReadOnlySpan<Vector3> points, bool looped) =>
         DrawGizmoLines(Gizmos.color, Gizmos.matrix, GL.LINES, [.. points.ToArray().Concat(looped ? [points[0]] : [])]);
 
@@ -69,7 +70,7 @@ public static class GizmosPatch
     #endregion
     #region DrawCubes
 
-    [HarmonyPrefix] [HarmonyPatch("DrawWireCube")]
+    [Prefix] [Patch("DrawWireCube")]
     public static void DrawGizmoWireCube(Vector3 center, Vector3 size)
     {
         Color col = Gizmos.color;
@@ -105,7 +106,7 @@ public static class GizmosPatch
         });
     }
 
-    [HarmonyPrefix] [HarmonyPatch("DrawCube")]
+    [Prefix] [Patch("DrawCube")]
     public static void DrawGizmoCube(Vector3 center, Vector3 size)
     {
         Color col = Gizmos.color;
@@ -181,13 +182,11 @@ public static class GizmosPatch
     /// <summary> <see cref="Mathf.Deg2Rad"/> * 16. </summary>
     public const float Deg2RadX16 = Mathf.Deg2Rad * 16;
 
-    [HarmonyPrefix]
-    [HarmonyPatch("DrawSphere")]
+    [Prefix] [Patch("DrawSphere")]
     public static void DrawGizmoSphere(Vector3 center, float radius) =>
         DawgGizmoMesh(SphereMesh, 0, center, Quaternion.identity, Vector3.one * radius, false);
 
-    [HarmonyPrefix]
-    [HarmonyPatch("DrawWireSphere")]
+    [Prefix] [Patch("DrawWireSphere")]
     public static void DrawGizmowireSphere(Vector3 center, float radius)
     {
         Color col = Gizmos.color;
@@ -228,7 +227,7 @@ public static class GizmosPatch
     #endregion
     #region DrawFrustum
 
-    [HarmonyPrefix] [HarmonyPatch("DrawFrustum")]
+    [Prefix] [Patch("DrawFrustum")]
     public static void DrawGizmosFrustum(Vector3 center, float fov, float maxRange, float minRange, float aspect)
     {
         Color col = Gizmos.color;
@@ -282,11 +281,11 @@ public static class GizmosPatch
     #endregion
     #region DrawMesh
 
-    [HarmonyPrefix] [HarmonyPatch("DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
+    [Prefix] [Patch("DrawMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
     public static void DrawGizmoMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
         DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, false);
 
-    [HarmonyPrefix] [HarmonyPatch("DrawWireMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
+    [Prefix] [Patch("DrawWireMesh", [typeof(Mesh), typeof(int), typeof(Vector3), typeof(Quaternion), typeof(Vector3)])]
     public static void DrawGizmoWireMesh(Mesh mesh, int submeshIndex, Vector3 position, Quaternion rotation, Vector3 scale) =>
         DawgGizmoMesh(mesh, submeshIndex, position, rotation, scale, true);
 
@@ -319,7 +318,7 @@ public static class GizmosPatch
     #endregion
     #region DrawIcon
 
-    [HarmonyPrefix] [HarmonyPatch("DrawIcon", [typeof(Vector3), typeof(string), typeof(bool), typeof(Color)])]
+    [Prefix] [Patch("DrawIcon", [typeof(Vector3), typeof(string), typeof(bool), typeof(Color)])]
     public static void DrawGizmoIcon(Vector3 center, string name, bool allowScaling, Color tint)
     {
         Color col = Gizmos.color;
